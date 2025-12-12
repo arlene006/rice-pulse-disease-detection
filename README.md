@@ -63,7 +63,8 @@ Professional gradient-based UI with card layouts
 ### Results Display
 Detailed analysis with confidence metrics and disease information
 
-> **Note**: Add screenshots of your application here after deployment
+<img width="1899" height="857" alt="Screenshot 2025-12-12 180847" src="https://github.com/user-attachments/assets/3c4f5aeb-b997-4069-9905-1e55010b2e7e" />
+
 
 ---
 
