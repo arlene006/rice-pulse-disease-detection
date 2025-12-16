@@ -14,6 +14,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+
 # Custom CSS for Professional Look
 def load_custom_css():
     st.markdown("""
@@ -161,122 +162,10 @@ def init_session_state():
     if 'uploaded_image' not in st.session_state:
         st.session_state.uploaded_image = None
 
-# Disease Classes
-RICE_CLASSES = ['Bacterial leaf blight', 'Brown spot', 'Leaf smut', '_Healthy']
-PULSE_CLASSES = []  # To be added when pulse model is trained
-
-# Disease Information with enhanced details
-DISEASE_INFO = {
-    'Bacterial leaf blight': {
-        'description': 'A bacterial disease that causes wilting of seedlings and yellowing and drying of leaves.',
-        'symptoms': 'Water-soaked lesions on leaves, yellowing, wilting',
-        'treatment': 'Use resistant varieties, apply copper-based bactericides, maintain proper water management',
-        'severity': 'High',
-        'icon': '🦠'
-    },
-    'Brown spot': {
-        'description': 'A fungal disease causing brown spots on leaves, reducing photosynthesis.',
-        'symptoms': 'Circular brown spots with gray centers on leaves',
-        'treatment': 'Use disease-free seeds, apply fungicides, ensure balanced fertilization',
-        'severity': 'Medium',
-        'icon': '🟤'
-    },
-    'Leaf smut': {
-        'description': 'A fungal disease that produces black powdery masses on leaves.',
-        'symptoms': 'Black angular spots on leaves, reduced grain quality',
-        'treatment': 'Use resistant varieties, remove infected plants, apply appropriate fungicides',
-        'severity': 'Medium',
-        'icon': '⚫'
-    },
-    '_Healthy': {
-        'description': 'The plant appears healthy with no visible disease symptoms.',
-        'symptoms': 'Green, vibrant leaves with no spots or discoloration',
-        'treatment': 'Continue regular care and monitoring',
-        'severity': 'None',
-        'icon': '✅'
-    }
-}
-
-# Define CNN Model Architecture
-class CNNModel(nn.Module):
-    def __init__(self, num_classes):
-        super(CNNModel, self).__init__()
-        self.conv1_1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
-        self.conv1_2 = nn.Conv2d(32, 32, kernel_size=3, padding=1)
-        self.conv2_1 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
-        self.conv2_2 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
-        self.conv3_1 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
-        self.conv3_2 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.fc1 = nn.Linear(128 * 28 * 28, 512)
-        self.fc2 = nn.Linear(512, num_classes)
-        self.dropout = nn.Dropout(0.5)
-        self.relu = nn.ReLU()
-        
-    def forward(self, x):
-        x = self.relu(self.conv1_1(x))
-        x = self.relu(self.conv1_2(x))
-        x = self.pool(x)
-        x = self.relu(self.conv2_1(x))
-        x = self.relu(self.conv2_2(x))
-        x = self.pool(x)
-        x = self.relu(self.conv3_1(x))
-        x = self.relu(self.conv3_2(x))
-        x = self.pool(x)
-        x = x.view(-1, 128 * 28 * 28)
-        x = self.relu(self.fc1(x))
-        x = self.dropout(x)
-        x = self.fc2(x)
-        return x
-
-def preprocess_image(image):
-    """Preprocess the uploaded image for model prediction"""
-    try:
-        transform = transforms.Compose([
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
-        return transform(image).unsqueeze(0)
-    except Exception as e:
-        st.error(f"Error preprocessing image: {str(e)}")
-        return None
-
-@st.cache_resource
-def load_rice_model():
-    """Load the trained rice disease model"""
-    try:
-        model = CNNModel(num_classes=len(RICE_CLASSES))
-        model.load_state_dict(torch.load('models/best_model.pth', map_location=torch.device('cpu')))
-        model.eval()
-        return model, None
-    except Exception as e:
-        return None, str(e)
-
-def predict_disease(image, model, classes):
-    """Predict disease from image"""
-    try:
-        img_tensor = preprocess_image(image)
-        if img_tensor is None:
-            return None, None, None
-            
-        with torch.no_grad():
-            outputs = model(img_tensor)
-            probabilities = torch.nn.functional.softmax(outputs, dim=1)
-            confidence, predicted = torch.max(probabilities, 1)
-            
-        predicted_class = classes[predicted.item()]
-        confidence_score = confidence.item() * 100
-        all_probs = {classes[i]: probabilities[0][i].item() * 100 for i in range(len(classes))}
-        
-        return predicted_class, confidence_score, all_probs
-    except Exception as e:
-        st.error(f"Error during prediction: {str(e)}")
-        return None, None, None
-
-def display_prediction_results(predicted_class, confidence, all_probs):
+# Logic for displaying results using handler data
+def display_prediction_results(predicted_class, confidence, all_probs, handler):
     """Display prediction results in a professional format"""
-    info = DISEASE_INFO.get(predicted_class, {})
+    info = handler.get_disease_info(predicted_class)
     
     # Result Header
     st.markdown(f"""
@@ -315,9 +204,9 @@ def display_prediction_results(predicted_class, confidence, all_probs):
                 st.write(f"{prob:.2f}%")
             st.progress(prob / 100)
 
-def display_disease_info(predicted_class):
+def display_disease_info(predicted_class, handler):
     """Display detailed disease information"""
-    info = DISEASE_INFO.get(predicted_class, {})
+    info = handler.get_disease_info(predicted_class)
     
     st.markdown("---")
     st.markdown("## 📚 Disease Information")
@@ -395,18 +284,25 @@ def main():
             
             st.markdown("---")
             st.markdown("### 📊 Quick Stats")
-            st.info("✅ Model Loaded")
-            st.success(f"🎯 {len(RICE_CLASSES)} Rice Diseases")
+            if crop_type == "🌾 Rice":
+                 st.info("✅ Rice Model Ready")
+            
         
         # Main Content
         if crop_type == "🌾 Rice":
+            # DEPENDENCY INVERSION: App uses the handler abstraction
+            from services.disease_handlers import RiceDiseaseHandler
+            handler = RiceDiseaseHandler()
+            
             st.markdown("## 🌾 Rice Disease Detection")
             st.markdown("Upload a clear image of a rice leaf to detect potential diseases using AI.")
             
-            # Load model
-            model, error = load_rice_model()
+            # Load model via handler
+            success, error = handler.load_model()
             
-            if model is not None:
+            if success:
+                st.success(f"🎯 {len(handler.classes)} Rice Diseases")
+                
                 # File uploader
                 uploaded_file = st.file_uploader(
                     "📁 Choose a rice leaf image",
@@ -430,7 +326,7 @@ def main():
                         st.markdown("### 🔬 Analysis")
                         if st.button("🚀 Analyze Disease", type="primary", use_container_width=True):
                             with st.spinner("🔄 Analyzing image... Please wait"):
-                                predicted_class, confidence, all_probs = predict_disease(image, model, RICE_CLASSES)
+                                predicted_class, confidence, all_probs = handler.predict(image)
                                 
                                 if predicted_class is not None:
                                     st.session_state.prediction_made = True
@@ -444,8 +340,8 @@ def main():
                     # Display results if prediction was made
                     if st.session_state.prediction_made and st.session_state.current_prediction:
                         pred = st.session_state.current_prediction
-                        display_prediction_results(pred['class'], pred['confidence'], pred['probs'])
-                        display_disease_info(pred['class'])
+                        display_prediction_results(pred['class'], pred['confidence'], pred['probs'], handler)
+                        display_disease_info(pred['class'], handler)
                         
                 else:
                     # Tips section
@@ -457,10 +353,10 @@ def main():
                         <div class="custom-card">
                             <h3>💡 Tips for Best Results</h3>
                             <ul>
-                                <li>Use clear, well-lit images</li>
-                                <li>Focus on the affected leaf area</li>
-                                <li>Avoid blurry or dark images</li>
-                                <li>Ensure the leaf fills most of the frame</li>
+                                <li style='color: #4b5563'>Use clear, well-lit images</li>
+                                <li style='color: #4b5563'>Focus on the affected leaf area</li>
+                                <li style='color: #4b5563'>Avoid blurry or dark images</li>
+                                <li style='color: #4b5563'>Ensure the leaf fills most of the frame</li>
                             </ul>
                         </div>
                         """, unsafe_allow_html=True)
@@ -470,10 +366,10 @@ def main():
                         <div class="custom-card">
                             <h3>🎯 Detectable Diseases</h3>
                             <ul>
-                                <li>🦠 Bacterial Leaf Blight</li>
-                                <li>🟤 Brown Spot</li>
-                                <li>⚫ Leaf Smut</li>
-                                <li>✅ Healthy Plants</li>
+                                <li style='color: #4b5563'>🦠 Bacterial Leaf Blight</li>
+                                <li style='color: #4b5563'>🟤 Brown Spot</li>
+                                <li style='color: #4b5563'>⚫ Leaf Smut</li>
+                                <li style='color: #4b5563'>✅ Healthy Plants</li>
                             </ul>
                         </div>
                         """, unsafe_allow_html=True)
@@ -489,10 +385,10 @@ def main():
             <div class="custom-card">
                 <h3>🔜 Coming Soon Features:</h3>
                 <ul>
-                    <li>Pulse leaf disease detection</li>
-                    <li>Multiple pulse varieties support</li>
-                    <li>Enhanced disease classification</li>
-                    <li>Treatment recommendations</li>
+                    <li style='color: #4b5563'>Pulse leaf disease detection</li>
+                    <li style='color: #4b5563'>Multiple pulse varieties support</li>
+                    <li style='color: #4b5563'>Enhanced disease classification</li>
+                    <li style='color: #4b5563'>Treatment recommendations</li>
                 </ul>
             </div>
             """, unsafe_allow_html=True)
