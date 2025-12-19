@@ -4,8 +4,10 @@ from torchvision import transforms
 from PIL import Image
 import streamlit as st
 from models.architecture import CNNModel
+from services.interfaces import IDiseasePredictor, IDiseaseInfoProvider, PredictionResult
+from typing import Optional, Dict, Any, Tuple
 
-# Disease Information Dictionary (Moved here)
+# Disease Information Dictionary
 RICE_DISEASE_INFO = {
     'Bacterial leaf blight': {
         'description': 'A bacterial disease that causes wilting of seedlings and yellowing and drying of leaves.',
@@ -37,27 +39,18 @@ RICE_DISEASE_INFO = {
     }
 }
 
-class CropDiseaseHandler(ABC):
+class CropDiseaseHandler(IDiseasePredictor, IDiseaseInfoProvider):
     """
-    Abstract Base Class for Crop Disease Handlers.
-    Follows Open/Closed Principle (OCP): New crops can be added by extending this class.
-    Follows Dependency Inversion Principle (DIP): App depends on this abstraction.
+    Base implementation for Crop Disease Handlers.
+    - Implements ISP interfaces.
+    - Provides common functionality.
     """
     
-    @abstractmethod
-    def load_model(self):
-        pass
-
-    @abstractmethod
-    def predict(self, image):
-        pass
-        
-    @abstractmethod
-    def get_disease_info(self, predicted_class):
-        pass
-    
-    def preprocess_image(self, image):
-        """Common preprocessing logic"""
+    def _preprocess_image(self, image) -> Optional[torch.Tensor]:
+        """
+        Internal helper for preprocessing.
+        Marked as protected (_) to imply it's an implementation detail, not part of the public API (LSP).
+        """
         try:
             transform = transforms.Compose([
                 transforms.Resize((224, 224)),
@@ -75,7 +68,7 @@ class RiceDiseaseHandler(CropDiseaseHandler):
         self.model_path = model_path
         self.model = None
 
-    def load_model(self):
+    def load_model(self) -> Tuple[bool, Optional[str]]:
         try:
             self.model = CNNModel(num_classes=len(self.classes))
             # Use map_location='cpu' for broad compatibility
@@ -85,14 +78,14 @@ class RiceDiseaseHandler(CropDiseaseHandler):
         except Exception as e:
             return False, str(e)
 
-    def predict(self, image):
+    def predict(self, image) -> Optional[PredictionResult]:
         if self.model is None:
-            return None, None, None
+            return None
             
         try:
-            img_tensor = self.preprocess_image(image)
+            img_tensor = self._preprocess_image(image)
             if img_tensor is None:
-                return None, None, None
+                return None
                 
             with torch.no_grad():
                 outputs = self.model(img_tensor)
@@ -101,23 +94,30 @@ class RiceDiseaseHandler(CropDiseaseHandler):
                 
             predicted_class = self.classes[predicted.item()]
             confidence_score = confidence.item() * 100
+            
+            # Create dictionary of all probabilities
             all_probs = {self.classes[i]: probabilities[0][i].item() * 100 for i in range(len(self.classes))}
             
-            return predicted_class, confidence_score, all_probs
+            # Return standardized result object (LSP Compliance)
+            return PredictionResult(
+                predicted_class=predicted_class,
+                confidence_score=confidence_score,
+                probabilities=all_probs
+            )
         except Exception as e:
             st.error(f"Error during prediction: {str(e)}")
-            return None, None, None
+            return None
 
-    def get_disease_info(self, predicted_class):
+    def get_disease_info(self, predicted_class: str) -> Dict[str, Any]:
         return RICE_DISEASE_INFO.get(predicted_class, {})
 
-# Example of how easy it is to add a new crop (OCP demonstration)
 class PulseDiseaseHandler(CropDiseaseHandler):
-    def load_model(self):
+    def load_model(self) -> Tuple[bool, Optional[str]]:
         return False, "Model under development"
         
-    def predict(self, image):
-        return None, None, None
+    def predict(self, image) -> Optional[PredictionResult]:
+        # LSP: Must return Optional[PredictionResult], not a tuple
+        return None
         
-    def get_disease_info(self, predicted_class):
+    def get_disease_info(self, predicted_class: str) -> Dict[str, Any]:
         return {}

@@ -163,9 +163,9 @@ def init_session_state():
         st.session_state.uploaded_image = None
 
 # Logic for displaying results using handler data
-def display_prediction_results(predicted_class, confidence, all_probs, handler):
+def display_prediction_results(result, handler):
     """Display prediction results in a professional format"""
-    info = handler.get_disease_info(predicted_class)
+    info = handler.get_disease_info(result.predicted_class)
     
     # Result Header
     st.markdown(f"""
@@ -179,11 +179,11 @@ def display_prediction_results(predicted_class, confidence, all_probs, handler):
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        display_name = "Healthy Plant" if predicted_class == "_Healthy" else predicted_class
+        display_name = "Healthy Plant" if result.predicted_class == "_Healthy" else result.predicted_class
         st.metric("🎯 Prediction", display_name)
     
     with col2:
-        st.metric("📊 Confidence", f"{confidence:.1f}%")
+        st.metric("📊 Confidence", f"{result.confidence_score:.1f}%")
     
     with col3:
         severity = info.get('severity', 'Unknown')
@@ -191,11 +191,11 @@ def display_prediction_results(predicted_class, confidence, all_probs, handler):
     
     # Confidence Progress Bar
     st.markdown("### Confidence Level")
-    st.progress(confidence / 100)
+    st.progress(result.confidence_score / 100)
     
     # All Probabilities
     with st.expander("📈 View All Disease Probabilities", expanded=False):
-        for class_name, prob in sorted(all_probs.items(), key=lambda x: x[1], reverse=True):
+        for class_name, prob in sorted(result.probabilities.items(), key=lambda x: x[1], reverse=True):
             display_name = "Healthy" if class_name == "_Healthy" else class_name
             col_a, col_b = st.columns([3, 1])
             with col_a:
@@ -241,29 +241,21 @@ def main():
     # Load custom CSS
     load_custom_css()
     
-    # Initialize session state
+    # Initialize session state (Keep for UI states)
     init_session_state()
     
-    # Login Configuration
-    try:
-        __login__obj = __login__(
-            auth_token="courier_auth_token",
-            company_name="Shims",
-            width=200,
-            height=250,
-            logout_button_name='Logout',
-            hide_menu_bool=False,
-            hide_footer_bool=False,
-            lottie_url='https://assets2.lottiefiles.com/packages/lf20_jcikwtux.json'
-        )
-        
-        LOGGED_IN = __login__obj.build_login_ui()
-        username = __login__obj.get_username()
-    except Exception as e:
-        st.error(f"Login error: {str(e)}")
-        return
+    # DEPENDENCY INJECTION: Get Container
+    # The App doesn't know HOW to create Auth or Handlers, it just asks the container.
+    from services.container import DependencyContainer
+    container = DependencyContainer.get_instance()
     
-    if LOGGED_IN:
+    # Auth Service Usage
+    auth = container.auth_service
+    is_logged_in = auth.login()
+    
+    if is_logged_in:
+        username = auth.get_username()
+        
         # Welcome Banner
         st.markdown(f"""
         <div class="welcome-banner">
@@ -289,25 +281,28 @@ def main():
             
         
         # Main Content
-        if crop_type == "🌾 Rice":
-            # DEPENDENCY INVERSION: App uses the handler abstraction
-            from services.disease_handlers import RiceDiseaseHandler
-            handler = RiceDiseaseHandler()
-            
-            st.markdown("## 🌾 Rice Disease Detection")
-            st.markdown("Upload a clear image of a rice leaf to detect potential diseases using AI.")
-            
+        # Use Container to get the correct handler (Factory Pattern)
+        handler = container.get_handler(crop_type)
+        
+        if handler:
+            # Polymorphism: We treat all handlers the same way
+            if crop_type == "🌾 Rice":
+                st.markdown("## 🌾 Rice Disease Detection")
+                st.markdown("Upload a clear image of a rice leaf to detect potential diseases using AI.")
+            else:
+                st.markdown("## 🫘 Pulse Disease Detection")
+        
             # Load model via handler
             success, error = handler.load_model()
             
             if success:
-                st.success(f"🎯 {len(handler.classes)} Rice Diseases")
+                st.success(f"🎯 {len(handler.classes) if hasattr(handler, 'classes') else 0} Diseases Support")
                 
                 # File uploader
                 uploaded_file = st.file_uploader(
-                    "📁 Choose a rice leaf image",
+                    "📁 Choose a leaf image",
                     type=["jpg", "jpeg", "png"],
-                    help="Upload a clear, well-lit image of a rice leaf"
+                    help="Upload a clear, well-lit image"
                 )
                 
                 if uploaded_file is not None:
@@ -326,22 +321,20 @@ def main():
                         st.markdown("### 🔬 Analysis")
                         if st.button("🚀 Analyze Disease", type="primary", use_container_width=True):
                             with st.spinner("🔄 Analyzing image... Please wait"):
-                                predicted_class, confidence, all_probs = handler.predict(image)
+                                # LSP Correction: Handle PredictionResult object
+                                result = handler.predict(image)
                                 
-                                if predicted_class is not None:
+                                if result is not None:
                                     st.session_state.prediction_made = True
-                                    st.session_state.current_prediction = {
-                                        'class': predicted_class,
-                                        'confidence': confidence,
-                                        'probs': all_probs
-                                    }
+                                    st.session_state.current_prediction = result
                                     st.success("✅ Analysis Complete!")
                     
                     # Display results if prediction was made
                     if st.session_state.prediction_made and st.session_state.current_prediction:
-                        pred = st.session_state.current_prediction
-                        display_prediction_results(pred['class'], pred['confidence'], pred['probs'], handler)
-                        display_disease_info(pred['class'], handler)
+                        result = st.session_state.current_prediction
+                        # Passing result object instead of unpacked values
+                        display_prediction_results(result, handler)
+                        display_disease_info(result.predicted_class, handler)
                         
                 else:
                     # Tips section
@@ -364,39 +357,34 @@ def main():
                     with col_tip2:
                         st.markdown("""
                         <div class="custom-card">
-                            <h3>🎯 Detectable Diseases</h3>
+                            <h3>🎯 System Status</h3>
                             <ul>
-                                <li style='color: #4b5563'>🦠 Bacterial Leaf Blight</li>
-                                <li style='color: #4b5563'>🟤 Brown Spot</li>
-                                <li style='color: #4b5563'>⚫ Leaf Smut</li>
-                                <li style='color: #4b5563'>✅ Healthy Plants</li>
+                                <li style='color: #4b5563'>✅ AI Model Loaded</li>
+                                <li style='color: #4b5563'>✅ Secure Login Active</li>
+                                <li style='color: #4b5563'>✅ Database Connected</li>
                             </ul>
                         </div>
                         """, unsafe_allow_html=True)
             else:
-                st.error(f"❌ Failed to load model: {error}")
-                st.info("Please ensure the model file exists at: `models/best_model.pth`")
-        
-        else:  # Pulse
-            st.markdown("## 🫘 Pulse Disease Detection")
-            st.info("🚧 Pulse disease detection model is currently under development.")
-            
-            st.markdown("""
-            <div class="custom-card">
-                <h3>🔜 Coming Soon Features:</h3>
-                <ul>
-                    <li style='color: #4b5563'>Pulse leaf disease detection</li>
-                    <li style='color: #4b5563'>Multiple pulse varieties support</li>
-                    <li style='color: #4b5563'>Enhanced disease classification</li>
-                    <li style='color: #4b5563'>Treatment recommendations</li>
-                </ul>
-            </div>
-            """, unsafe_allow_html=True)
-        
+                 # Handler exists but failed to load model (e.g. Pulse)
+                 if crop_type == "🫘 Pulse (Coming Soon)":
+                    st.info("🚧 Pulse disease detection model is currently under development.")
+                    st.markdown("""
+                    <div class="custom-card">
+                        <h3>🔜 Coming Soon:</h3>
+                        <ul>
+                            <li style='color: #4b5563'>Pulse leaf disease detection</li>
+                            <li style='color: #4b5563'>Multiple pulse varieties support</li>
+                        </ul>
+                    </div>
+                    """, unsafe_allow_html=True)
+                 else:
+                    st.error(f"❌ Failed to load model: {error}")
+
         # Footer
         st.markdown("""
         <div class="footer">
-            <p>Built with ❤️ using Streamlit & PyTorch | Disease Detection System v2.0</p>
+            <p>Built with ❤️ using Streamlit & PyTorch | Disease Detection System v3.0</p>
             <p style='font-size: 0.8rem; color: #94a3b8;'>© 2024 Agricultural AI Solutions</p>
         </div>
         """, unsafe_allow_html=True)

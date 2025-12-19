@@ -171,27 +171,41 @@ The application will open in your browser at `http://localhost:8501`
 
 ```
 rice-disease-detection/
-├── app.py                          # Main Streamlit application
-├── streamlit_login_auth_ui/        # Authentication UI package
-│   ├── __init__.py
-│   ├── widgets.py                  # Login widgets
-│   └── utils.py                    # Utility functions
-├── models/                         # Model files (gitignored)
-│   ├── best_model.pth             # Trained CNN model
-│   └── training_history.json      # Training metrics
-├── data/                           # Dataset (gitignored)
-│   ├── rice_leaf_diseases/        # Rice disease images
-│   └── pulse_leaf_diseases/       # Pulse disease images
+├── app.py                          # Main Streamlit application (Presentation Layer)
+├── services/                       # Business Logic & Core Services
+│   ├── auth_service.py             # User Authentication Logic
+│   ├── container.py                # Dependency Injection Container
+│   ├── disease_handlers.py         # AI Logic & Prediction Handlers
+│   └── interfaces.py               # Interface Contracts (SOLID)
+├── models/                         # Model Storage
+│   ├── architecture.py             # CNN Architecture Definition
+│   ├── best_model.pth              # Trained Weights
+│   └── training_history.json       # Metrics
+├── streamlit_login_auth_ui/        # Auth UI Components
+├── data/                           # Training Data
+├── tests/                          # Automated Test Suite
+│   ├── test_container.py
+│   └── test_solid_compliance.py
 ├── docs/                           # Documentation
-│   ├── SETUP.md                   # Detailed setup guide
-│   └── MODEL_GUIDE.md             # Model training guide
-├── .gitignore                      # Git ignore rules
-├── requirements.txt                # Python dependencies
-├── README.md                       # This file
-├── LICENSE                         # MIT License
-└── _secret_auth_template.json     # Auth template
+├── requirements.txt                # Dependencies
+├── SOLID_PRINCIPLES.md             # Architecture Analysis
+├── PROJECT_DOCUMENTATION.md        # Full Technical Guide
+└── README.md                       # This file
 
 ```
+
+---
+
+## 🛡️ Enterprise Architecture
+
+This project has been professionally re-engineered to follow **SOLID Principles** and **Enterprise Design Patterns**, making it robust, testable, and maintainable.
+
+### Core Principles Applied:
+1.  **Dependency Injection**: Controlled by `services/container.py`. The app never manually creates service instances.
+2.  **Layered Architecture**: Strict separation between UI (`app.py`), Business Logic (`services/`), and Data (`data/`).
+3.  **Interfaces**: Defined in `services/interfaces.py`. The app relies on contracts, not implementation details.
+
+For a detailed technical breakdown for mentors and evaluators, please see **[PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md)**.
 
 ---
 
