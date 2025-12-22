@@ -20,7 +20,7 @@ Each module has a distinct responsibility, preventing tightly coupled code:
 
 The system is open for extension but closed for modification:
 
-- **New Crop Models**: You can add new crop disease detection models (e.g., `WheatDiseaseHandler`) by creating a new class implementation in `services/disease_handlers.py` without changing existing detection logic.
+- **New Crop Models**: We successfully added `PulseDiseaseHandler` by extending the base class, without modifying any existing `RiceDiseaseHandler` logic or the main application flow. This proves the system is extensible.
 - **New Detection Logic**: The `CropDiseaseHandler` base class in `services/disease_handlers.py` allows adding new detection backends by creating a new class implementation without modifying existing app code.
 
 ---

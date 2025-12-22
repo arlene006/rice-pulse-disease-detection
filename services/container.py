@@ -18,7 +18,7 @@ class DependencyContainer:
         # We could use a dictionary to lazy-load or return factories
         self._handlers: Dict[str, Type[CropDiseaseHandler]] = {
             "🌾 Rice": RiceDiseaseHandler,
-            "🫘 Pulse (Coming Soon)": PulseDiseaseHandler
+            "🫘 Pulse": PulseDiseaseHandler
         }
 
     # Singleton pattern (simplest for Streamlit session)

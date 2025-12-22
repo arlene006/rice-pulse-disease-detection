@@ -62,6 +62,45 @@ class CropDiseaseHandler(IDiseasePredictor, IDiseaseInfoProvider):
             st.error(f"Error preprocessing image: {str(e)}")
             return None
 
+# Pulse Disease Information
+PULSE_DISEASE_INFO = {
+    'Angular-Leaf-Spot': {
+        'description': 'A fungal causing angular spots on leaves, often limited by leaf veins.',
+        'symptoms': 'Angular brown or gray spots on leaves, yellow halos.',
+        'treatment': 'Apply copper fungicides, rotate crops, use disease-free seeds.',
+        'severity': 'Medium',
+        'icon': '🍂'
+    },
+    'Bacterial-Pathogen': {
+        'description': 'Bacterial infection affecting the plant foliage.',
+        'symptoms': 'Water-soaked lesions, wilting, leaf spotting.',
+        'treatment': 'Copper-based bactericides, remove infected debris.',
+        'severity': 'High',
+        'icon': '🦠'
+    },
+    'Cercospora-Leaf-Spot': {
+        'description': 'A fungal disease causing circular spots with reddish margins.',
+        'symptoms': 'Small circular spots, leaf yellowing, defoliation.',
+        'treatment': 'Fungicidal sprays, remove crop residue, crop rotation.',
+        'severity': 'Medium',
+        'icon': '🔴'
+    },
+    'Potassium-Deficiency': {
+        'description': 'Nutrient deficiency typically causing yellowing at leaf edges.',
+        'symptoms': 'Yellowing/scorching of leaf margins, poor growth.',
+        'treatment': 'Apply potassium-rich fertilizers (Potash).',
+        'severity': 'Low',
+        'icon': '⚠️'
+    },
+    'No-Disease-Bean': {
+        'description': 'The plant appears healthy.',
+        'symptoms': 'Green, vibrant leaves, normal growth.',
+        'treatment': 'Maintain regular care.',
+        'severity': 'None',
+        'icon': '✅'
+    }
+}
+
 class RiceDiseaseHandler(CropDiseaseHandler):
     def __init__(self, model_path='models/best_model.pth'):
         self.classes = ['Bacterial leaf blight', 'Brown spot', 'Leaf smut', '_Healthy']
@@ -112,12 +151,47 @@ class RiceDiseaseHandler(CropDiseaseHandler):
         return RICE_DISEASE_INFO.get(predicted_class, {})
 
 class PulseDiseaseHandler(CropDiseaseHandler):
+    def __init__(self, model_path='models/pulse_disease_model.pth'):
+        self.classes = ['Angular-Leaf-Spot', 'Bacterial-Pathogen', 'Cercospora-Leaf-Spot', 'No-Disease-Bean', 'Potassium-Deficiency']
+        self.model_path = model_path
+        self.model = None
+
     def load_model(self) -> Tuple[bool, Optional[str]]:
-        return False, "Model under development"
-        
+        try:
+            self.model = CNNModel(num_classes=len(self.classes))
+            self.model.load_state_dict(torch.load(self.model_path, map_location=torch.device('cpu')))
+            self.model.eval()
+            return True, None
+        except Exception as e:
+            return False, str(e)
+            
     def predict(self, image) -> Optional[PredictionResult]:
-        # LSP: Must return Optional[PredictionResult], not a tuple
-        return None
+        if self.model is None:
+            return None
+
+        try:
+            img_tensor = self._preprocess_image(image)
+            if img_tensor is None:
+                return None
+            
+            with torch.no_grad():
+                outputs = self.model(img_tensor)
+                probabilities = torch.nn.functional.softmax(outputs, dim=1)
+                confidence, predicted = torch.max(probabilities, 1)
+
+            predicted_class = self.classes[predicted.item()]
+            confidence_score = confidence.item() * 100
+            
+            all_probs = {self.classes[i]: probabilities[0][i].item() * 100 for i in range(len(self.classes))}
+            
+            return PredictionResult(
+                predicted_class=predicted_class,
+                confidence_score=confidence_score,
+                probabilities=all_probs
+            )
+        except Exception as e:
+            st.error(f"Error during prediction: {str(e)}")
+            return None
         
     def get_disease_info(self, predicted_class: str) -> Dict[str, Any]:
-        return {}
+        return PULSE_DISEASE_INFO.get(predicted_class, {})

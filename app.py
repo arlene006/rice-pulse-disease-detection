@@ -270,7 +270,7 @@ def main():
             st.markdown("### 🔍 Detection Settings")
             crop_type = st.selectbox(
                 "Select Crop Type",
-                ["🌾 Rice", "🫘 Pulse (Coming Soon)"],
+                ["🌾 Rice", "🫘 Pulse"],
                 help="Choose the type of crop for disease detection"
             )
             
@@ -366,20 +366,8 @@ def main():
                         </div>
                         """, unsafe_allow_html=True)
             else:
-                 # Handler exists but failed to load model (e.g. Pulse)
-                 if crop_type == "🫘 Pulse (Coming Soon)":
-                    st.info("🚧 Pulse disease detection model is currently under development.")
-                    st.markdown("""
-                    <div class="custom-card">
-                        <h3>🔜 Coming Soon:</h3>
-                        <ul>
-                            <li style='color: #4b5563'>Pulse leaf disease detection</li>
-                            <li style='color: #4b5563'>Multiple pulse varieties support</li>
-                        </ul>
-                    </div>
-                    """, unsafe_allow_html=True)
-                 else:
-                    st.error(f"❌ Failed to load model: {error}")
+                 # Handler exists but failed to load model
+                 st.error(f"❌ Failed to load model: {error}")
 
         # Footer
         st.markdown("""

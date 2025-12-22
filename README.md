@@ -39,7 +39,12 @@ An intelligent web application that detects diseases in rice and pulse crops usi
   - ⚫ Leaf Smut
   - ✅ Healthy Plants
 
-- **Pulse Diseases**: Coming Soon! 🚧
+- **Pulse Diseases** (5 classes):
+  - 🍂 Angular Leaf Spot
+  - 🦠 Bacterial Pathogen
+  - 🔴 Cercospora Leaf Spot
+  - ⚠️ Potassium Deficiency
+  - ✅ No Disease (Healthy)
 
 ### Application Features
 - 📸 Image upload with drag-and-drop support
@@ -58,7 +63,7 @@ An intelligent web application that detects diseases in rice and pulse crops usi
 Beautiful authentication interface with Lottie animations
 
 ### Disease Detection Interface
-Professional gradient-based UI with card layouts
+Professional gradient-based UI with card layouts. Supports switching between **Rice** and **Pulse** crops.
 
 ### Results Display
 Detailed analysis with confidence metrics and disease information
@@ -106,11 +111,11 @@ pip install -r requirements.txt
 The trained model files are too large for GitHub. Download them from:
 
 **Option 1: Pre-trained Model**
-- Download `best_model.pth` from [Google Drive/Dropbox Link]
-- Place it in the `models/` directory
+- Download `best_model.pth` and `pulse_disease_model.pth`
+- Place them in the `models/` directory
 
 **Option 2: Train Your Own**
-- See [MODEL_GUIDE.md](docs/MODEL_GUIDE.md) for training instructions
+- See training scripts: `train_pulse.py` (and similar for rice)
 
 ### Step 5: Setup Authentication
 
@@ -140,8 +145,8 @@ The application will open in your browser at `http://localhost:8501`
    - Secure authentication with encrypted cookies
 
 2. **Select Crop Type**
-   - Choose "Rice" from the sidebar
-   - (Pulse detection coming soon)
+   - Choose "Rice" or "Pulse" from the sidebar
+   - Switch instantly between different crop models
 
 3. **Upload Image**
    - Click the file uploader
@@ -172,6 +177,8 @@ The application will open in your browser at `http://localhost:8501`
 ```
 rice-disease-detection/
 ├── app.py                          # Main Streamlit application (Presentation Layer)
+├── scripts/                        # Utility Scripts
+│   └── train_pulse.py              # Training Script for Pulse Model
 ├── services/                       # Business Logic & Core Services
 │   ├── auth_service.py             # User Authentication Logic
 │   ├── container.py                # Dependency Injection Container
@@ -179,7 +186,8 @@ rice-disease-detection/
 │   └── interfaces.py               # Interface Contracts (SOLID)
 ├── models/                         # Model Storage
 │   ├── architecture.py             # CNN Architecture Definition
-│   ├── best_model.pth              # Trained Weights
+│   ├── best_model.pth              # Rice Model Weights
+│   ├── pulse_disease_model.pth     # Pulse Model Weights
 │   └── training_history.json       # Metrics
 ├── streamlit_login_auth_ui/        # Auth UI Components
 ├── data/                           # Training Data
@@ -187,9 +195,9 @@ rice-disease-detection/
 │   ├── test_container.py
 │   └── test_solid_compliance.py
 ├── docs/                           # Documentation
+│   ├── SOLID_PRINCIPLES.md         # Architecture Analysis
+│   └── PROJECT_DOCUMENTATION.md    # Full Technical Guide
 ├── requirements.txt                # Dependencies
-├── SOLID_PRINCIPLES.md             # Architecture Analysis
-├── PROJECT_DOCUMENTATION.md        # Full Technical Guide
 └── README.md                       # This file
 
 ```
@@ -205,7 +213,7 @@ This project has been professionally re-engineered to follow **SOLID Principles*
 2.  **Layered Architecture**: Strict separation between UI (`app.py`), Business Logic (`services/`), and Data (`data/`).
 3.  **Interfaces**: Defined in `services/interfaces.py`. The app relies on contracts, not implementation details.
 
-For a detailed technical breakdown for mentors and evaluators, please see **[PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md)**.
+For a detailed technical breakdown for mentors and evaluators, please see **[PROJECT_DOCUMENTATION.md](docs/PROJECT_DOCUMENTATION.md)**.
 
 ---
 
@@ -215,7 +223,7 @@ For a detailed technical breakdown for mentors and evaluators, please see **[PRO
 - **Type**: Convolutional Neural Network (CNN)
 - **Framework**: PyTorch
 - **Input Size**: 224x224 RGB images
-- **Classes**: 4 (Rice diseases + Healthy)
+- **Classes**: 4 (Rice), 5 (Pulse)
 
 ### Model Details
 ```python
@@ -223,16 +231,19 @@ For a detailed technical breakdown for mentors and evaluators, please see **[PRO
 - Conv Block 2: 32→64→64 channels  
 - Conv Block 3: 64→128→128 channels
 - Fully Connected: 512 neurons
-- Output: 4 classes
+- Output: N classes (Dynamic)
 - Dropout: 0.5
 ```
 
 ### Performance
+
+#### Rice Model
 - **Training Accuracy**: ~63%
 - **Validation Accuracy**: ~53%
-- **Training Epochs**: 30
-- **Optimizer**: Adam
-- **Loss Function**: Cross Entropy
+
+#### Pulse Model
+- **Training Accuracy**: ~97%
+- **Validation Accuracy**: ~96% (Excellent Performance)
 
 ---
 
@@ -289,7 +300,6 @@ Contributions are welcome! Here's how you can help:
 
 ### Areas for Contribution
 - 🎯 Improve model accuracy
-- 🫘 Add pulse disease detection
 - 🌍 Multi-language support
 - 📱 Mobile responsiveness
 - 📊 Add analytics dashboard
@@ -335,7 +345,7 @@ If you encounter any issues or have questions:
 - [x] Rice disease detection
 - [x] Professional UI with gradients
 - [x] User authentication
-- [ ] Pulse disease detection
+- [x] Pulse disease detection
 - [ ] Mobile app version
 - [ ] API endpoint for integration
 - [ ] Multi-language support
