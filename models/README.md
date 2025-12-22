@@ -8,8 +8,6 @@ The model files are too large to include in the GitHub repository (~197MB each).
 
 ### Rice Disease Model
 
-**Download Link**: [Add your Google Drive/Dropbox/OneDrive link here]
-
 **File**: `best_model.pth` (197.11 MB)
 
 **Place the downloaded file in this directory**: `models/best_model.pth`
