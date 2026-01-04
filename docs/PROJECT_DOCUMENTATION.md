@@ -19,6 +19,18 @@ The application is built using a **Layered Architecture** to ensure separation o
 4.  **Infrastructure (`services/container.py`)**: A "Dependency Container" that wires everything together.
 
 ---
+    
+## 🚀 Key Features
+
+*   **Dual-Crop Disease Detection**: Supports both Rice and Pulse crops with dedicated AI models.
+*   **AI-Powered Assistant**: Integrated Botpress chatbot in the sidebar for instant help.
+*   **Dynamic UI**:
+    *   **Adjustable Sidebar**: User-controllable width (300px-1200px) and chatbot height.
+    *   **Context-Aware**: Chatbot is available alongside analysis results.
+*   **Secure Authentication**: Role-based login system.
+*   **Enterprise Architecture**: Built on SOLID principles for maintainability.
+
+---
 
 ## 📂 Project Structure Explained
 
@@ -35,10 +47,11 @@ graph TD
 
 ### 1. Root Directory
 *   `app.py`: The entry point.
-    *   *Old Version*: Contained all logic (UI, Auth, AI, Data).
-    *   *New Version*: Clean and minimal. It asks the `DependencyContainer` for services and uses them. It doesn't know *how* things work, only *that* they work.
+    *   **Features**: now includes a dynamic sidebar with adjustable width and an integrated **AI Chatbot** (Botpress).
+    *   *Role*: Presentation Layer. Ask specific services for logic and displays results.
 *   `SOLID_PRINCIPLES.md`: Documentation of the 5 architectural principles applied.
 *   `requirements.txt`: List of all Python libraries needed.
+*   `pages/`: Contains the standalone Chatbot page (`1_🤖_Chat_Help.py`) as an alternative interface.
 
 ### 2. Services Directory (`services/`)
 This is the engine room of the application.

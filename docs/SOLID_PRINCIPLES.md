@@ -22,6 +22,7 @@ The system is open for extension but closed for modification:
 
 - **New Crop Models**: We successfully added `PulseDiseaseHandler` by extending the base class, without modifying any existing `RiceDiseaseHandler` logic or the main application flow. This proves the system is extensible.
 - **New Detection Logic**: The `CropDiseaseHandler` base class in `services/disease_handlers.py` allows adding new detection backends by creating a new class implementation without modifying existing app code.
+- **UI Extensibility**: New features like the **Sidebar Chatbot** were integrated as independent modules (Components/Iframes) without altering the core `DiseaseClassifier` logic, respecting the separation of concerns.
 
 ---
 
