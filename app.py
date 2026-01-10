@@ -285,6 +285,9 @@ def init_session_state():
 # Logic for displaying results using handler data
 def display_prediction_results(result, handler):
     """Display prediction results in a professional format"""
+    # Import here to avoid circular dependencies if any, though likely fine at top
+    from services.report_generator import ReportGenerator
+    
     info = handler.get_disease_info(result.predicted_class)
     
     # Result Header
@@ -313,6 +316,37 @@ def display_prediction_results(result, handler):
     st.markdown("### Confidence Level")
     st.progress(result.confidence_score / 100)
     
+    # PDF Report Download
+    # Create the report
+    try:
+        # Determine crop_type (it's not passed here directly, but we can infer or pass it. 
+        # For now, let's look at the result object or handler properties. 
+        # Handler is specialized, so we can check type(handler).
+        from services.disease_handlers import RiceDiseaseHandler, PulseDiseaseHandler
+        if isinstance(handler, RiceDiseaseHandler):
+            crop_name = "Rice"
+        elif isinstance(handler, PulseDiseaseHandler):
+            crop_name = "Pulse"
+        else:
+            crop_name = "Crop"
+
+        # Get uploaded image from session state if available
+        uploaded_img = st.session_state.get('uploaded_image') # We need to ensure this is set when uploading
+        
+        pdf_bytes = ReportGenerator.generate_pdf_report(result, info, crop_name, uploaded_img)
+        
+        st.download_button(
+            label="📄 Download Report as PDF",
+            data=pdf_bytes,
+            file_name=f"disease_report_{result.predicted_class.replace(' ', '_')}.pdf",
+            mime="application/pdf",
+            key="pdf_download_btn",
+            help="Download a detailed PDF report of this analysis"
+        )
+    except Exception as e:
+        st.error(f"Could not generate PDF report: {e}")
+
+    
     # All Probabilities
     with st.expander("📈 View All Disease Probabilities", expanded=False):
         for class_name, prob in sorted(result.probabilities.items(), key=lambda x: x[1], reverse=True):
@@ -329,30 +363,57 @@ def display_disease_info(predicted_class, handler):
     info = handler.get_disease_info(predicted_class)
     
     st.markdown("---")
-    st.markdown("## 📚 Disease Information")
     
+    # 1. Disease Overview
+    st.markdown("### 🔍 Disease Overview")
+    st.markdown(f"""
+    <div class="disease-card">
+        <p style='font-size: 1.05rem; line-height: 1.6;'>
+            {info.get('overview', info.get('description', 'N/A'))}
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 2. Symptoms & Quick Treatment (Side by Side)
     col1, col2 = st.columns(2)
-    
     with col1:
-        st.markdown(f"""
-        <div class="disease-card">
-            <h3>📖 Description</h3>
-            <p>{info.get('description', 'N/A')}</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown(f"""
-        <div class="disease-card">
-            <h3>🔍 Symptoms</h3>
-            <p>{info.get('symptoms', 'N/A')}</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
+        st.markdown("#### 🌡️ Symptoms")
+        st.info(info.get('symptoms', 'N/A'))
     with col2:
+        st.markdown("#### 💊 Quick Treatment")
+        st.warning(info.get('treatment', 'N/A'))
+
+    # 3. Prevention Tips (Bullet List)
+    prevention_tips = info.get('prevention', [])
+    if prevention_tips:
+        st.markdown("### 🛡️ Prevention Tips")
+        prevention_html = ""
+        for tip in prevention_tips:
+             prevention_html += f"<li style='margin-bottom: 8px;'>{tip}</li>"
+             
         st.markdown(f"""
-        <div class="disease-card">
-            <h3>💊 Treatment & Management</h3>
-            <p>{info.get('treatment', 'N/A')}</p>
+        <div class="custom-card" style="border-left: 5px solid #3b82f6;">
+            <ul style="padding-left: 20px; color: #374151;">
+                {prevention_html}
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # 4. Practical Treatment Guidance (Detailed Steps)
+    treatment_steps = info.get('treatment_guidance', info.get('cure_steps', []))
+    if treatment_steps:
+        st.markdown("### 🧬 Practical Treatment Guidance")
+        
+        guidance_html = ""
+        for step in treatment_steps:
+            # Using single line to avoid markdown code block interpretation due to indentation
+            guidance_html += f"<li style='margin-bottom: 12px; display: flex; align-items: start;'><span style='margin-right: 12px; font-size: 1.2rem;'>✅</span><span style='font-size: 1.05rem; line-height: 1.5;'>{step}</span></li>"
+            
+        st.markdown(f"""
+        <div class="custom-card" style="border-left: 5px solid #10b981; background-color: #f0fdf4;">
+            <ul style="list-style-type: none; padding-left: 0; margin-top: 5px;">
+                {guidance_html}
+            </ul>
         </div>
         """, unsafe_allow_html=True)
 
@@ -524,6 +585,7 @@ def main():
                         st.markdown("### 📸 Uploaded Image")
                         try:
                             image = Image.open(uploaded_file).convert('RGB')
+                            st.session_state.uploaded_image = image
                             st.image(image, use_container_width=True, caption="Your uploaded image")
                         except Exception as e:
                             st.error(f"Error loading image: {str(e)}")

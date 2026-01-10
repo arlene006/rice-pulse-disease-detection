@@ -3,6 +3,8 @@
 ## 📋 Executive Summary
 This project is an advanced AI-powered agricultural diagnostic tool designed to detect crop diseases (specifically Rice) from leaf images. It uses Deep Learning (CNNs) for analysis and provides a professional, secure web interface for farmers.
 
+The system now goes beyond detection by offering **Actionable Cure Plans** and **Downloadable PDF Reports**, ensuring farmers have tangible next steps.
+
 The project has been engineered with **Enterprise Software Standards** in mind, adhering strictly to **SOLID Principles** and utilizing modern design patterns like **Dependency Injection** and **Factory Pattern**.
 
 ---
@@ -15,7 +17,10 @@ The application is built using a **Layered Architecture** to ensure separation o
 2.  **Service Layer (`services/`)**: Contains the core business logic.
     *   **Auth Service**: Manages user login/logout security.
     *   **Disease Handlers**: Orchestrates the AI model loading and prediction logic.
-3.  **Data/Model Layer (`models/`)**: Contains the raw neural network architecture and weights.
+    *   **Reporting Service**: Generates professional PDF reports.
+3.  **Data/Model Layer**:
+    *   **Models**: Contains the raw neural network architecture (`models/`).
+    *   **Data**: Stores static disease information and cure steps (`services/disease_data.py`).
 4.  **Infrastructure (`services/container.py`)**: A "Dependency Container" that wires everything together.
 
 ---
@@ -24,6 +29,9 @@ The application is built using a **Layered Architecture** to ensure separation o
 
 *   **Dual-Crop Disease Detection**: Supports both Rice and Pulse crops with dedicated AI models.
 *   **AI-Powered Assistant**: Integrated Botpress chatbot in the sidebar for instant help.
+*   **Comprehensive Reporting**:
+    *   **PDF Generation**: Download professional reports with diagnosis and images.
+    *   **Cure Response Mechanism**: Get step-by-step healing plans for detected diseases.
 *   **Dynamic UI**:
     *   **Adjustable Sidebar**: User-controllable width (300px-1200px) and chatbot height.
     *   **Context-Aware**: Chatbot is available alongside analysis results.
@@ -63,6 +71,10 @@ This is the engine room of the application.
 *   **`disease_handlers.py`**: Business logic for crops.
     *   `RiceDiseaseHandler`: Knows how to load the Rice model and interpret results.
     *   `PulseDiseaseHandler`: A placeholder for future expansion (demonstrating extensibility).
+*   **`report_generator.py`**: Handles PDF generation.
+    *   `ReportGenerator`: Creates the downloadable PDF report using ReportLab.
+*   **`disease_data.py`**: Static Data Storage.
+    *   Contains the dictionary of disease info and **cure steps**, isolating data from logic.
 *   **`container.py`**: The **Dependency Injection Container**.
     *   This is a "Factory" that creates all the objects efficiently. It creates the Auth Service and the correct Crop Handler ensuring the App never creates them manually.
 

@@ -7,37 +7,7 @@ from models.architecture import CNNModel
 from services.interfaces import IDiseasePredictor, IDiseaseInfoProvider, PredictionResult
 from typing import Optional, Dict, Any, Tuple
 
-# Disease Information Dictionary
-RICE_DISEASE_INFO = {
-    'Bacterial leaf blight': {
-        'description': 'A bacterial disease that causes wilting of seedlings and yellowing and drying of leaves.',
-        'symptoms': 'Water-soaked lesions on leaves, yellowing, wilting',
-        'treatment': 'Use resistant varieties, apply copper-based bactericides, maintain proper water management',
-        'severity': 'High',
-        'icon': '🦠'
-    },
-    'Brown spot': {
-        'description': 'A fungal disease causing brown spots on leaves, reducing photosynthesis.',
-        'symptoms': 'Circular brown spots with gray centers on leaves',
-        'treatment': 'Use disease-free seeds, apply fungicides, ensure balanced fertilization',
-        'severity': 'Medium',
-        'icon': '🟤'
-    },
-    'Leaf smut': {
-        'description': 'A fungal disease that produces black powdery masses on leaves.',
-        'symptoms': 'Black angular spots on leaves, reduced grain quality',
-        'treatment': 'Use resistant varieties, remove infected plants, apply appropriate fungicides',
-        'severity': 'Medium',
-        'icon': '⚫'
-    },
-    '_Healthy': {
-        'description': 'The plant appears healthy with no visible disease symptoms.',
-        'symptoms': 'Green, vibrant leaves with no spots or discoloration',
-        'treatment': 'Continue regular care and monitoring',
-        'severity': 'None',
-        'icon': '✅'
-    }
-}
+from services.disease_data import RICE_DISEASE_INFO, PULSE_DISEASE_INFO
 
 class CropDiseaseHandler(IDiseasePredictor, IDiseaseInfoProvider):
     """
@@ -61,45 +31,6 @@ class CropDiseaseHandler(IDiseasePredictor, IDiseaseInfoProvider):
         except Exception as e:
             st.error(f"Error preprocessing image: {str(e)}")
             return None
-
-# Pulse Disease Information
-PULSE_DISEASE_INFO = {
-    'Angular-Leaf-Spot': {
-        'description': 'A fungal causing angular spots on leaves, often limited by leaf veins.',
-        'symptoms': 'Angular brown or gray spots on leaves, yellow halos.',
-        'treatment': 'Apply copper fungicides, rotate crops, use disease-free seeds.',
-        'severity': 'Medium',
-        'icon': '🍂'
-    },
-    'Bacterial-Pathogen': {
-        'description': 'Bacterial infection affecting the plant foliage.',
-        'symptoms': 'Water-soaked lesions, wilting, leaf spotting.',
-        'treatment': 'Copper-based bactericides, remove infected debris.',
-        'severity': 'High',
-        'icon': '🦠'
-    },
-    'Cercospora-Leaf-Spot': {
-        'description': 'A fungal disease causing circular spots with reddish margins.',
-        'symptoms': 'Small circular spots, leaf yellowing, defoliation.',
-        'treatment': 'Fungicidal sprays, remove crop residue, crop rotation.',
-        'severity': 'Medium',
-        'icon': '🔴'
-    },
-    'Potassium-Deficiency': {
-        'description': 'Nutrient deficiency typically causing yellowing at leaf edges.',
-        'symptoms': 'Yellowing/scorching of leaf margins, poor growth.',
-        'treatment': 'Apply potassium-rich fertilizers (Potash).',
-        'severity': 'Low',
-        'icon': '⚠️'
-    },
-    'No-Disease-Bean': {
-        'description': 'The plant appears healthy.',
-        'symptoms': 'Green, vibrant leaves, normal growth.',
-        'treatment': 'Maintain regular care.',
-        'severity': 'None',
-        'icon': '✅'
-    }
-}
 
 class RiceDiseaseHandler(CropDiseaseHandler):
     def __init__(self, model_path='models/best_model.pth'):

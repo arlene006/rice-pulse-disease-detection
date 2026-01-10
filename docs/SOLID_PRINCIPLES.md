@@ -10,7 +10,9 @@ Each module has a distinct responsibility, preventing tightly coupled code:
 
 - **`models/architecture.py`**: Handles only neural network architecture (CNN model definition).
 - **`services/disease_handlers.py`**: Manages disease prediction logic (preprocessing, model loading, predictions).
+- **`services/disease_data.py`**: Stores static disease information, separating data from logic.
 - **`services/auth_service.py`**: Focuses purely on user authentication (login/registration).
+- **`services/report_generator.py`**: Handles PDF creation and formatting.
 - **`services/container.py`**: Contains dependency injection logic (service creation and management).
 - **`app.py`**: Handles only UI presentation (displaying results, user interaction).
 
@@ -64,8 +66,10 @@ rice-disease-detection/
 ├── services/
 │   ├── auth_service.py             # Authentication (SRP, DIP)
 │   ├── container.py                # Dependency Injection (DIP)
+│   ├── disease_data.py             # Static Data (SRP)
 │   ├── disease_handlers.py         # Prediction Logic (SRP, OCP, LSP)
-│   └── interfaces.py               # Abstractions (ISP, LSP, DIP)
+│   ├── interfaces.py               # Abstractions (ISP, LSP, DIP)
+│   └── report_generator.py         # Reporting (SRP)
 ├── models/
 │   └── architecture.py             # CNN Architecture (SRP)
 └── tests/
