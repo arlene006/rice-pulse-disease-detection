@@ -25,6 +25,8 @@ An intelligent web application that detects diseases in rice and pulse crops usi
 - **📊 High Accuracy**: Achieves 63% accuracy on rice disease classification
 - **🚀 Real-time Analysis**: Instant disease prediction with confidence scores
 - **💊 Treatment Guidance**: Detailed symptoms and management recommendations
+- **📄 PDF Reports**: Download comprehensive analysis reports for record-keeping
+- **🤖 AI Assistant**: Integrated chatbot for instant help and guidance
 - **🎨 Professional UI**: Modern, gradient-based interface with smooth animations
 - **🔐 Secure Authentication**: User login system with encrypted cookies
 
@@ -51,6 +53,8 @@ An intelligent web application that detects diseases in rice and pulse crops usi
 - 📊 Confidence score visualization with progress bars
 - 📈 Probability distribution for all disease classes
 - 📚 Comprehensive disease information cards
+- 📄 **PDF Report Generation**: Download detailed analysis reports
+- 🤖 **AI Chatbot**: Get instant help via integrated Botpress assistant
 - 💡 Best practices and tips for image capture
 - 🔄 Session state management for smooth UX
 - 🎨 Responsive design with gradient backgrounds
@@ -132,8 +136,19 @@ The app will create this automatically on first run.
 
 ### Running the Application
 
+**Option 1: Using the convenience script**
 ```bash
-streamlit run app.py
+python run.py
+```
+
+**Option 2: Direct streamlit command**
+```bash
+streamlit run crop_disease_detector/app.py
+```
+
+**Option 3: After installation (pip install -e .)**
+```bash
+crop-disease-detector
 ```
 
 The application will open in your browser at `http://localhost:8501`
@@ -161,6 +176,12 @@ The application will open in your browser at `http://localhost:8501`
    - See prediction with confidence score
    - Review disease information
    - Read treatment recommendations
+   - **Download PDF report** for your records
+
+6. **Get Help**
+   - Use the AI chatbot in the sidebar for instant assistance
+   - Navigate to the Chat Help page for full-screen chatbot
+   - Ask about diseases, treatments, or platform usage
 
 ### Tips for Best Results
 
@@ -175,29 +196,40 @@ The application will open in your browser at `http://localhost:8501`
 ## 🏗️ Project Structure
 
 ```
-rice-disease-detection/
-├── app.py                          # Main Streamlit application (Presentation Layer)
-├── scripts/                        # Utility Scripts
-│   └── train_pulse.py              # Training Script for Pulse Model
-├── services/                       # Business Logic & Core Services
-│   ├── auth_service.py             # User Authentication Logic
-│   ├── container.py                # Dependency Injection Container
-│   ├── disease_handlers.py         # AI Logic & Prediction Handlers
-│   └── interfaces.py               # Interface Contracts (SOLID)
-├── models/                         # Model Storage
-│   ├── architecture.py             # CNN Architecture Definition
-│   ├── best_model.pth              # Rice Model Weights
-│   ├── pulse_disease_model.pth     # Pulse Model Weights
-│   └── training_history.json       # Metrics
-├── streamlit_login_auth_ui/        # Auth UI Components
-├── data/                           # Training Data
+rice-pulse-disease-detection/
+├── crop_disease_detector/          # Main application package
+│   ├── __init__.py
+│   ├── app.py                      # Main Streamlit application
+│   ├── services/                   # Business Logic & Core Services
+│   │   ├── __init__.py
+│   │   ├── auth_service.py         # User Authentication Logic
+│   │   ├── container.py            # Dependency Injection Container
+│   │   ├── disease_data.py         # Disease Information Database
+│   │   ├── disease_handlers.py     # AI Logic & Prediction Handlers
+│   │   ├── interfaces.py           # Interface Contracts (SOLID)
+│   │   └── report_generator.py     # PDF Report Generation
+│   ├── models/                     # Model Storage
+│   │   ├── __init__.py
+│   │   ├── architecture.py         # CNN Architecture Definition
+│   │   ├── best_model.pth          # Rice Model Weights
+│   │   └── pulse_disease_model.pth # Pulse Model Weights
+│   └── pages/                      # Multi-page app pages
+│       └── 1_🤖_Chat_Help.py       # Chatbot Page
 ├── tests/                          # Automated Test Suite
 │   ├── test_container.py
 │   └── test_solid_compliance.py
 ├── docs/                           # Documentation
 │   ├── SOLID_PRINCIPLES.md         # Architecture Analysis
 │   └── PROJECT_DOCUMENTATION.md    # Full Technical Guide
+├── scripts/                        # Utility Scripts
+│   ├── train_pulse.py              # Training Script for Pulse Model
+│   └── test_pdf_gen.py             # PDF Generation Test
+├── data/                           # Training Data
+├── streamlit_login_auth_ui/        # Auth UI Components (Vendored)
+├── run.py                          # Convenience runner script
+├── setup.py                        # Package configuration
 ├── requirements.txt                # Dependencies
+├── LICENSE                         # MIT License
 └── README.md                       # This file
 
 ```

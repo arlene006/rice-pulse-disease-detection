@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import MagicMock
-from services.container import DependencyContainer
-from services.auth_service import IAuthService
-from services.disease_handlers import RiceDiseaseHandler, PulseDiseaseHandler
+from crop_disease_detector.services.container import DependencyContainer
+from crop_disease_detector.services.auth_service import IAuthService
+from crop_disease_detector.services.disease_handlers import RiceDiseaseHandler, PulseDiseaseHandler
 
 def test_container_is_singleton():
     """Verify DependencyContainer creates only one instance."""
@@ -24,7 +24,7 @@ def test_container_factory_rice():
 def test_container_factory_pulse():
     """Verify container returns correct handler for Pulse."""
     container = DependencyContainer.get_instance()
-    handler = container.get_handler("🫘 Pulse (Coming Soon)")
+    handler = container.get_handler("🫘 Pulse")
     assert isinstance(handler, PulseDiseaseHandler)
 
 def test_container_factory_invalid():

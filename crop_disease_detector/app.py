@@ -1,5 +1,13 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import sys
+import os
+
+# Ensure the root directory is in sys.path for absolute imports
+root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if root_path not in sys.path:
+    sys.path.append(root_path)
+
 from streamlit_login_auth_ui.widgets import __login__
 import torch
 import torch.nn as nn
@@ -286,7 +294,7 @@ def init_session_state():
 def display_prediction_results(result, handler):
     """Display prediction results in a professional format"""
     # Import here to avoid circular dependencies if any, though likely fine at top
-    from services.report_generator import ReportGenerator
+    from crop_disease_detector.services.report_generator import ReportGenerator
     
     info = handler.get_disease_info(result.predicted_class)
     
@@ -322,7 +330,7 @@ def display_prediction_results(result, handler):
         # Determine crop_type (it's not passed here directly, but we can infer or pass it. 
         # For now, let's look at the result object or handler properties. 
         # Handler is specialized, so we can check type(handler).
-        from services.disease_handlers import RiceDiseaseHandler, PulseDiseaseHandler
+        from crop_disease_detector.services.disease_handlers import RiceDiseaseHandler, PulseDiseaseHandler
         if isinstance(handler, RiceDiseaseHandler):
             crop_name = "Rice"
         elif isinstance(handler, PulseDiseaseHandler):
@@ -427,7 +435,7 @@ def main():
     
     # DEPENDENCY INJECTION: Get Container
     # The App doesn't know HOW to create Auth or Handlers, it just asks the container.
-    from services.container import DependencyContainer
+    from crop_disease_detector.services.container import DependencyContainer
     container = DependencyContainer.get_instance()
     
     # Auth Service Usage

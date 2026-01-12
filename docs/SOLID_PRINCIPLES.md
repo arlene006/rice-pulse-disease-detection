@@ -61,20 +61,31 @@ High-level modules depend on abstractions, not concrete implementations:
 ## 📊 File Structure
 
 ```
-rice-disease-detection/
-├── app.py                          # UI Layer (SRP, DIP)
-├── services/
-│   ├── auth_service.py             # Authentication (SRP, DIP)
-│   ├── container.py                # Dependency Injection (DIP)
-│   ├── disease_data.py             # Static Data (SRP)
-│   ├── disease_handlers.py         # Prediction Logic (SRP, OCP, LSP)
-│   ├── interfaces.py               # Abstractions (ISP, LSP, DIP)
-│   └── report_generator.py         # Reporting (SRP)
-├── models/
-│   └── architecture.py             # CNN Architecture (SRP)
-└── tests/
-    ├── test_container.py           # DIP Tests
-    └── test_solid_compliance.py    # SOLID Tests
+rice-pulse-disease-detection/
+├── crop_disease_detector/          # Main Package (SRP, DIP)
+│   ├── __init__.py
+│   ├── app.py                      # UI Layer (SRP, DIP)
+│   ├── services/                   # Business Logic Layer
+│   │   ├── __init__.py
+│   │   ├── auth_service.py         # Authentication (SRP, DIP)
+│   │   ├── container.py            # Dependency Injection (DIP)
+│   │   ├── disease_data.py         # Static Data (SRP)
+│   │   ├── disease_handlers.py     # Prediction Logic (SRP, OCP, LSP)
+│   │   ├── interfaces.py           # Abstractions (ISP, LSP, DIP)
+│   │   └── report_generator.py     # Reporting (SRP)
+│   ├── models/                     # Model Layer
+│   │   ├── __init__.py
+│   │   └── architecture.py         # CNN Architecture (SRP)
+│   └── pages/                  # Multi-page app pages
+│       └── 1_🤖_Chat_Help.py   # Chatbot Page (SRP)
+├── tests/                          # Test Suite
+│   ├── test_container.py           # DIP Tests
+│   └── test_solid_compliance.py    # SOLID Tests
+├── docs/                           # Documentation
+├── scripts/                        # Utility Scripts
+├── data/                           # Training Data
+├── run.py                          # Convenience Runner
+└── setup.py                        # Package Configuration
 ```
 
 ---

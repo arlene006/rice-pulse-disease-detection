@@ -1,7 +1,7 @@
 
 import pytest
-from services.interfaces import IDiseasePredictor, IDiseaseInfoProvider, PredictionResult
-from services.disease_handlers import RiceDiseaseHandler, PulseDiseaseHandler
+from crop_disease_detector.services.interfaces import IDiseasePredictor, IDiseaseInfoProvider, PredictionResult
+from crop_disease_detector.services.disease_handlers import RiceDiseaseHandler, PulseDiseaseHandler
 
 def test_handlers_implement_interfaces():
     """Verify that handlers implement the required ISP interfaces."""

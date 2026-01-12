@@ -46,41 +46,68 @@ Here is the breakdown of every important file and folder in the system:
 
 ```mermaid
 graph TD
-    App[app.py] --> Container[services/container.py]
+    App[crop_disease_detector/app.py] --> Container[services/container.py]
     Container --> Auth[services/auth_service.py]
     Container --> Handlers[services/disease_handlers.py]
     Handlers --> Interfaces[services/interfaces.py]
     Handlers --> Model[models/architecture.py]
+    Handlers --> ReportGen[services/report_generator.py]
+    App --> Chatbot[pages/1_🤖_Chat_Help.py]
 ```
 
 ### 1. Root Directory
-*   `app.py`: The entry point.
-    *   **Features**: now includes a dynamic sidebar with adjustable width and an integrated **AI Chatbot** (Botpress).
-    *   *Role*: Presentation Layer. Ask specific services for logic and displays results.
+*   `run.py`: Convenience script to run the application.
+    *   **Usage**: `python run.py` - Simplifies running the app.
+*   `setup.py`: Package configuration for installation.
+    *   **Purpose**: Allows `pip install -e .` for development installation.
 *   `SOLID_PRINCIPLES.md`: Documentation of the 5 architectural principles applied.
 *   `requirements.txt`: List of all Python libraries needed.
-*   `pages/`: Contains the standalone Chatbot page (`1_🤖_Chat_Help.py`) as an alternative interface.
 
-### 2. Services Directory (`services/`)
+### 2. Main Package (`crop_disease_detector/`)
+This is the core application package following Python best practices.
+
+*   **`app.py`**: The entry point.
+    *   **Features**: Dynamic sidebar with adjustable width and an integrated **AI Chatbot** (Botpress).
+    *   **New**: PDF report download button integrated into results display.
+    *   *Role*: Presentation Layer. Asks specific services for logic and displays results.
+    
+*   **`pages/`**: Streamlit multi-page app pages.
+    *   `1_🤖_Chat_Help.py`: Full-screen chatbot interface for user assistance.
+    *   *Note*: This location is correct for Streamlit's automatic page discovery.
+
+### 3. Services Directory (`crop_disease_detector/services/`)
 This is the engine room of the application.
+
 *   **`interfaces.py`**: Defines the "Contracts" (Interfaces).
     *   `IDiseasePredictor`: "Anyone who wants to be a predictor MUST have a `predict()` method."
     *   `IAuthService`: "Anyone who handles auth MUST have a `login()` method."
+    *   `PredictionResult`: Standardized result object for LSP compliance.
+    
 *   **`auth_service.py`**: Handles security.
     *   `StreamlitAuthService`: The actual code that draws the login box and checks passwords.
+    
 *   **`disease_handlers.py`**: Business logic for crops.
     *   `RiceDiseaseHandler`: Knows how to load the Rice model and interpret results.
-    *   `PulseDiseaseHandler`: A placeholder for future expansion (demonstrating extensibility).
+    *   `PulseDiseaseHandler`: Handles pulse crop disease detection.
+    *   **Updated**: Model paths now reference `crop_disease_detector/models/`.
+    
 *   **`report_generator.py`**: Handles PDF generation.
-    *   `ReportGenerator`: Creates the downloadable PDF report using ReportLab.
+    *   `ReportGenerator`: Creates downloadable PDF reports using ReportLab.
+    *   **Features**: Professional formatting, disease info, images, treatment guidance.
+    
 *   **`disease_data.py`**: Static Data Storage.
-    *   Contains the dictionary of disease info and **cure steps**, isolating data from logic.
+    *   Contains dictionaries of disease info and **cure steps**, isolating data from logic.
+    *   Includes `RICE_DISEASE_INFO` and `PULSE_DISEASE_INFO`.
+    
 *   **`container.py`**: The **Dependency Injection Container**.
-    *   This is a "Factory" that creates all the objects efficiently. It creates the Auth Service and the correct Crop Handler ensuring the App never creates them manually.
+    *   This is a "Factory" that creates all objects efficiently.
+    *   Creates the Auth Service and the correct Crop Handler.
+    *   Ensures the App never creates them manually.
 
-### 3. Models Directory (`models/`)
-*   `architecture.py`: The pure PyTorch Code defining the Convolutional Neural Network (CNN).
-*   `best_model.pth`: The actual trained "brain" of the AI (weights file).
+### 4. Models Directory (`crop_disease_detector/models/`)
+*   `architecture.py`: The pure PyTorch code defining the Convolutional Neural Network (CNN).
+*   `best_model.pth`: The actual trained "brain" of the AI for rice (weights file).
+*   `pulse_disease_model.pth`: Trained model for pulse crops.
 
 ---
 
